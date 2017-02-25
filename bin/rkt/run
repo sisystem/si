@@ -1,0 +1,21 @@
+#! /usr/bin/env bash
+SCRIPT_DIR=$(dirname $(readlink -fn ${BASH_SOURCE[0]}))
+
+source $SCRIPT_DIR/../utils/check_installed_commands.sh
+
+rkt run \
+    --debug --insecure-options=image \
+    --volume=data,kind=host,source=$PWD/public \
+    docker://nginx
+    --net=host \
+    --mount volume=data,target=/usr/share/nginx/html \
+    docker://php
+
+rkt run                                                                     --- in one pod:
+    --volume volume--var-lib-redis,kind=host,source=/var/lib/redis              --- mount /var/lib/redis into Redis container data dir (to write its snapshots)
+    --cpu=500 --memory=512M                                                     --- limit Redis container resources (1/2 core)
+    quay.io/quay/redis                                                      --- get ACI 1
+    --insecure-options=image
+    --port=http:9000                                                            --- map to host port 9000
+    --set-env REDIS_HOST=localhost                                              --- env for demo-api
+    ~/Development/demo-api-redis/demo-api-redis-latest-linux-amd64.aci      --- use ACI 2

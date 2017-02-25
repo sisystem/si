@@ -1,0 +1,50 @@
+#! /usr/bin/env bash
+set -e
+SCRIPT_DIR=$(dirname $(readlink -fn ${BASH_SOURCE[0]}))
+cd $SCRIPT_DIR/../..
+
+mkdir -p doc/out/quality_tools
+
+echo -e "\n       ******** PHPCS ********"
+phpcs --standard=PSR2 --extensions=php,inc,js,ts --ignore=*/tests/* --encoding=utf-8 src \
+    --runtime-set ignore_errors_on_exit 1 --runtime-set ignore_warnings_on_exit 1
+    #-v
+    #--report=full/xml/csv/source/summary/gitblame/checkstyle
+    #--report-TYPE=FILE
+
+echo -e "\n       ******** PHPMD ********"
+phpmd src text codesize,cleancode,unusedcode,design,naming \
+    --ignore-violations-on-exit
+    #controversial
+    #--reportfile file.xml   --- def. stdout
+    #--suffixec php,inc
+    #--exclude=PAT1,PAT2
+    #--strict                --- ignore @SuppressWarnings annotation
+
+echo -e "\n       ******** PHPCPD ********"
+phpcpd src
+    #--suffixes php,php5,inc     --- def. php
+    #--min-lines 4       --- min. identical lines (def. 5)
+    #--min-tokens 40     --- min. identical tokens (def. 70)
+    #--log-pmd file.xml  --- export to XML
+
+echo -e "\n       ******** PHPLOC ********"
+phploc src
+    #--progress
+    #--log-csv file.csv  --- export to csv
+
+echo -e "\n       ******** PDEPEND ********"
+pdepend --summary-xml=doc/out/quality_tools/pdepend.xml --jdepend-chart=doc/out/quality_tools/jdepend.svg --overview-pyramid=doc/out/quality_tools/pyramid.svg src
+echo "charts written to 'doc/out/quality_tools'"
+echo "metrics decr: https://pdepend.org/documentation/software-metrics/index.html"
+
+echo -e "\n       ******** PHPMETRICS ********"
+phpmetrics --plugins=./vendor/phpmetrics/composer-extension/ComposerExtension.php --report-html=doc/out/quality_tools/phpmetrics.html src \
+    --report-cli \
+    --chart-bubbles=doc/out/quality_tools/chart.svg       # Bubbles chart (requires Graphviz)
+    #--report-html/csv/json/xml=FILE \
+    #--report-xml=php://stdout -q
+    #--excluded-dirs=REGEX
+    #--level     --- depth of summary report
+echo "charts written to 'doc/out/quality_tools'"
+echo "metrics descr: www.phpmetrics.org/documentation/index.html"

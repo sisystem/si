@@ -1,0 +1,23 @@
+#! /usr/bin/env bash
+set -e
+SCRIPT_DIR=$(dirname $(readlink -fn ${BASH_SOURCE[0]}))
+
+source $SCRIPT_DIR/../utils/check_installed_commands.sh
+
+[[ "$EUID" -ne 0 ]] && { echo ":: Need root privileges"; exit 1; }
+
+# acbuild --debug begin
+#trap "{ export EXT=$?; acbuild --debug end && exit $EXT; }" EXIT
+
+git clone https://github.com/docker-library/php.git php-docker &&
+cp -a php-docker/7.1/apache/Dockerfile var/rkt/ &&
+rm -rf php-docker &&
+cd var/rkt &&
+sed -i '/^ENV PHP_EXTRA_CONFIGURE_ARGS/ s/$/ --enable-maintainer-zts/' Dockerfile &&
+docker build -t apache-php71-zts .
+
+
+# PHP 7.1.0 ZTS alpine
+#rkt fetch --insecure-options=image docker://php:zts-alpine
+# nginx 1.11.8 (mainline) alpine
+#rkt fetch --insecure-options=image docker://nginx:mainline-alpine

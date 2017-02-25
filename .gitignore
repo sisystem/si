@@ -1,0 +1,23 @@
+vendor/
+composer.phar
+composer.lock
+/node_modules
+doc/out/
+var/log/
+
+### IDE specific
+.idea
+nbroject
+.buildpath
+.project
+.settings
+*.sublime-project
+*.sublime-workspace
+tags
+
+### OS specific
+Thumbs.db
+.DS_Store
+
+### personal
+.zzz_hidden/
